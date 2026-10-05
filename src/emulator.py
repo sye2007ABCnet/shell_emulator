@@ -2,14 +2,23 @@ import os
 import shlex
 import sys
 
-VFS_NAME = "vfs"
+from config import parse_args
+
+COMMENT_PREFIX = "#"
+
 
 class CommandError(Exception):
     """Ошибка выполнения команды: неверные аргументы и т.п."""
 
+
+class ScriptError(Exception):
+    """Ошибка стартового скрипта."""
+
+
 def expand_env_vars(token: str) -> str:
     """Раскрывает переменные окружения реальной ОС вида $HOME, ${HOME}."""
     return os.path.expandvars(token)
+
 
 def parse_line(line: str):
     """
@@ -26,13 +35,16 @@ def parse_line(line: str):
         return None, []
     return tokens[0], tokens[1:]
 
+
 def cmd_ls(args):
     """Заглушка: выводит своё имя и полученные аргументы."""
     print(f"ls: аргументы={args}")
 
+
 def cmd_cd(args):
     """Заглушка: выводит своё имя и полученные аргументы."""
     print(f"cd: аргументы={args}")
+
 
 def cmd_exit(args):
     """Завершает работу эмулятора. Аргументов не принимает."""
@@ -40,11 +52,13 @@ def cmd_exit(args):
         raise CommandError("exit: команда не принимает аргументов")
     raise SystemExit(0)
 
+
 COMMANDS = {
     "ls": cmd_ls,
     "cd": cmd_cd,
     "exit": cmd_exit,
 }
+
 
 def execute(command, args):
     """Выполняет команду. Печатает сообщение об ошибке, если что-то пошло не так."""
@@ -57,18 +71,75 @@ def execute(command, args):
     except CommandError as exc:
         print(f"ошибка: {exc}", file=sys.stderr)
 
-def prompt() -> str:
-    """Формирует приглашение к вводу. Содержит имя VFS."""
-    return f"{VFS_NAME}> "
 
-def repl():
-    """Основной цикл REPL: читать строку -> разобрать -> выполнить -> печатать."""
-    print(f"Эмулятор командной строки. VFS: {VFS_NAME}")
-    print("Введите 'exit' для выхода.\n")
+def run_line(line, echo_prompt=None):
+    """Разбирает и выполняет одну строку команды.
 
+    Если echo_prompt задан, печатает "приглашение+команда" перед
+    выполнением - имитация ввода пользователем (нужно для скрипта).
+    """
+    if echo_prompt is not None:
+        print(f"{echo_prompt}{line}")
+    try:
+        command, args = parse_line(line)
+    except ValueError as exc:
+        print(f"ошибка разбора команды: {exc}", file=sys.stderr)
+        return
+    if command is not None:
+        execute(command, args)
+
+
+def load_script_lines(path):
+    """Читает строки стартового скрипта, пропуская пустые строки
+    и комментарии (начинающиеся с '#').
+
+    Возвращает список пар (номер строки, текст команды).
+    Бросает ScriptError, если файл не удалось открыть.
+    """
+    try:
+        with open(path, "r") as script_file:
+            raw_lines = script_file.readlines()
+    except OSError as exc:
+        raise ScriptError(f"не удалось открыть '{path}': {exc}") from exc
+
+    result = []
+    for lineno, raw in enumerate(raw_lines, 1):
+        stripped = raw.strip()
+        if not stripped or stripped.startswith(COMMENT_PREFIX):
+            continue
+        result.append((lineno, raw.rstrip("\n")))
+    return result
+
+
+def run_script(path, prompt_text):
+    """Выполняет стартовый скрипт, имитируя диалог с пользователем.
+
+    Ошибка в отдельной строке скрипта сообщается (с номером строки),
+    но не прерывает выпролнение остальных строк.
+    """
+    try:
+        lines = load_script_lines(path)
+    except ScriptError as exc:
+        print(f"ошибка стартового скрипта: {exc}", file=sys.stderr)
+        return
+
+    for lineno, line in lines:
+        try:
+            run_line(line, echo_prompt=prompt_text)
+        except SystemExit:
+            raise
+        except Exception as exc:
+            print(
+                f"ошибка стартового скрипта (строка {lineno}): {exc}",
+                file=sys.stderr,
+            )
+
+
+def repl(prompt_text):
+    """Основной интерактивный цикл REPL."""
     while True:
         try:
-            line = input(prompt())
+            line = input(prompt_text)
         except EOFError:
             print()
             break
@@ -81,21 +152,30 @@ def repl():
             continue
 
         try:
-            command, args = parse_line(line)
-        except ValueError as exc:
-            print(f"ошибка разбора команды: {exc}", file=sys.stderr)
-            continue
-
-        if command is None:
-            continue
-
-        try:
-            execute(command, args)
+            run_line(line)
         except SystemExit:
             break
 
+
+def main(argv=None):
+    """Точка входа: читает конфигурацию, выполняет скрипт, запускает REPL."""
+    cfg = parse_args(argv)
+    print(cfg.describe())
+    print()
+    print(f"Эмулятор командной строки. VFS: {cfg.vfs_name}")
+    print("Введите 'exit' для выхода.\n")
+
+    if cfg.script:
+        try:
+            run_script(cfg.script, cfg.prompt)
+        except SystemExit:
+            return
+
+    try:
+        repl(cfg.prompt)
+    except SystemExit:
+        pass
+
+
 if __name__ == "__main__":
-    repl()
-
-
-
+    main()
