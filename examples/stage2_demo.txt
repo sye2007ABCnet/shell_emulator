@@ -1,0 +1,5 @@
+# Стартовый скрипт для демонстрации этапа 2
+ls -la $HOME
+cd projects
+badcmd 1 2 3
+exit now
