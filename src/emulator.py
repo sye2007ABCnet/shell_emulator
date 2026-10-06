@@ -3,6 +3,7 @@ import shlex
 import sys
 
 from config import parse_args
+from vfs import VFS, VFSError
 
 COMMENT_PREFIX = "#"
 
@@ -36,21 +37,37 @@ def parse_line(line: str):
     return tokens[0], tokens[1:]
 
 
-def cmd_ls(args):
+def cmd_ls(vfs, args):
     """Заглушка: выводит своё имя и полученные аргументы."""
     print(f"ls: аргументы={args}")
 
 
-def cmd_cd(args):
+def cmd_cd(vfs, args):
     """Заглушка: выводит своё имя и полученные аргументы."""
     print(f"cd: аргументы={args}")
 
 
-def cmd_exit(args):
+def cmd_exit(vfs, args):
     """Завершает работу эмулятора. Аргументов не принимает."""
     if args:
         raise CommandError("exit: команда не принимает аргументов")
     raise SystemExit(0)
+
+
+def load_vfs(cfg):
+    """Загружает VFS согласно конфигурации.
+
+    Если путь не задан - возвращает пустую VFS. Если загрузка не
+    удалась - сообщает об ошибке и тоже возвращает пустую VFS, чтобы
+    эмулятор мог продолжить работу, а не падать целиком.
+    """
+    if not cfg.vfs_path:
+        return VFS.empty(cfg.vfs_name)
+    try:
+        return VFS.load(cfg.vfs_path)
+    except VFSError as exc:
+        print(f"ошибка загрузки VFS: {exc}", file=sys.stderr)
+        return VFS.empty(cfg.vfs_name)
 
 
 COMMANDS = {
@@ -60,19 +77,19 @@ COMMANDS = {
 }
 
 
-def execute(command, args):
+def execute(vfs, command, args):
     """Выполняет команду. Печатает сообщение об ошибке, если что-то пошло не так."""
     handler = COMMANDS.get(command)
     if handler is None:
         print(f"{command}: команда не найдена", file=sys.stderr)
         return
     try:
-        handler(args)
+        handler(vfs, args)
     except CommandError as exc:
         print(f"ошибка: {exc}", file=sys.stderr)
 
 
-def run_line(line, echo_prompt=None):
+def run_line(vfs, line, echo_prompt=None):
     """Разбирает и выполняет одну строку команды.
 
     Если echo_prompt задан, печатает "приглашение+команда" перед
@@ -86,7 +103,7 @@ def run_line(line, echo_prompt=None):
         print(f"ошибка разбора команды: {exc}", file=sys.stderr)
         return
     if command is not None:
-        execute(command, args)
+        execute(vfs, command, args)
 
 
 def load_script_lines(path):
@@ -111,7 +128,7 @@ def load_script_lines(path):
     return result
 
 
-def run_script(path, prompt_text):
+def run_script(vfs, path, prompt_text):
     """Выполняет стартовый скрипт, имитируя диалог с пользователем.
 
     Ошибка в отдельной строке скрипта сообщается (с номером строки),
@@ -125,7 +142,7 @@ def run_script(path, prompt_text):
 
     for lineno, line in lines:
         try:
-            run_line(line, echo_prompt=prompt_text)
+            run_line(vfs, line, echo_prompt=prompt_text)
         except SystemExit:
             raise
         except Exception as exc:
@@ -135,7 +152,7 @@ def run_script(path, prompt_text):
             )
 
 
-def repl(prompt_text):
+def repl(vfs, prompt_text):
     """Основной интерактивный цикл REPL."""
     while True:
         try:
@@ -152,7 +169,7 @@ def repl(prompt_text):
             continue
 
         try:
-            run_line(line)
+            run_line(vfs, line)
         except SystemExit:
             break
 
@@ -162,17 +179,20 @@ def main(argv=None):
     cfg = parse_args(argv)
     print(cfg.describe())
     print()
+
+    vfs = load_vfs(cfg)
+
     print(f"Эмулятор командной строки. VFS: {cfg.vfs_name}")
     print("Введите 'exit' для выхода.\n")
 
     if cfg.script:
         try:
-            run_script(cfg.script, cfg.prompt)
+            run_script(vfs, cfg.script, cfg.prompt)
         except SystemExit:
             return
 
     try:
-        repl(cfg.prompt)
+        repl(vfs, cfg.prompt)
     except SystemExit:
         pass
 
