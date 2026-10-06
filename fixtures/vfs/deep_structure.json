@@ -1,0 +1,29 @@
+{
+  "name": "deep_structure",
+  "type": "dir",
+  "permissions": "rwxr-xr-x",
+  "children": [
+    {"name": "top.txt", "type": "file", "content": "0LLQtdGA0YXQvdC40Lkg0YPRgNC+0LLQtdC90YwK"},
+    {
+      "name": "level1",
+      "type": "dir",
+      "children": [
+        {"name": "l1.txt", "type": "file", "content": "0YPRgNC+0LLQtdC90Yw gMQo="},
+        {
+          "name": "level2",
+          "type": "dir",
+          "children": [
+            {"name": "l2.txt", "type": "file", "content": "0YPRgNC+0LLQtdC90Yw gMgo="},
+            {
+              "name": "level3",
+              "type": "dir",
+              "children": [
+                {"name": "l3.txt", "type": "file", "content": "0YPRgNC+0LLQtdC90Yw gMwo="}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

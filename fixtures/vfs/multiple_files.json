@@ -1,0 +1,12 @@
+{
+  "name": "multiple_files",
+  "type": "dir",
+  "permissions": "rwxr-xr-x",
+  "children": [
+    {"name": "a.txt", "type": "file", "content": "0YTQsNC50Lsg0JAK"},
+    {"name": "b.txt", "type": "file", "content": "0YTQsNC50Lsg0JEK"},
+    {"name": "c.log", "type": "file", "content": "0LvQvtCzLdGE0LDQudC7IEMK"},
+    {"name": "notes.md", "type": "file", "content": "IyDQl9Cw0LzQtdGC0LrQuAo="},
+    {"name": "image.bin", "type": "file", "content": "AAECAwQFBgcICQoLDA0ODw=="}
+  ]
+}

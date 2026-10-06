@@ -1,0 +1,13 @@
+{
+  "name": "minimal",
+  "type": "dir",
+  "permissions": "rwxr-xr-x",
+  "children": [
+    {
+      "name": "readme.txt",
+      "type": "file",
+      "permissions": "rw-r--r--",
+      "content": "0K3RgtC+INC80LjQvdC40LzQsNC70YzQvdCw0Y8gVkZTOiDQvtC00LjQvSDRhNCw0LnQuyDQsiDQutC+0YDQvdC1Lgo="
+    }
+  ]
+}
