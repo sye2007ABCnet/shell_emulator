@@ -49,7 +49,7 @@ class RunScriptTests(unittest.TestCase):
         buf = StringIO()
         try:
             with redirect_stdout(buf):
-                run_script(path, "vfs> ")
+                run_script(None, path, "vfs> ")
         finally:
             os.remove(path)
         output = buf.getvalue()
@@ -62,7 +62,7 @@ class RunScriptTests(unittest.TestCase):
         buf = StringIO()
         try:
             with redirect_stdout(buf):
-                run_script(path, "vfs> ")
+                run_script(None, path, "vfs> ")
         finally:
             os.remove(path)
         self.assertIn("vfs> ls", buf.getvalue())

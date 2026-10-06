@@ -46,17 +46,17 @@ class ExecuteTests(unittest.TestCase):
 
     def test_unknown_command_does_not_raise(self):
         """Неизвестная команда сообщается, но не роняет программу."""
-        execute("unknowncmd", ["a", "b"])
+        execute(None, "unknowncmd", ["a", "b"])
 
     def test_exit_without_args_raises_system_exit(self):
         """exit без аргументов завершает работу."""
         with self.assertRaises(SystemExit):
-            cmd_exit([])
+            cmd_exit(None, [])
 
     def test_exit_with_args_raises_command_error(self):
         """exit с аргументами — ошибка «неверные аргументы»."""
         with self.assertRaises(CommandError):
-            cmd_exit(["extra"])
+            cmd_exit(None, ["extra"])
 
 
 if __name__ == "__main__":
