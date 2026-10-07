@@ -34,6 +34,19 @@
 - При запуске всегда печатается отладочный вывод всех параметров
   конфигурации.
 
+На этапе 3 реализовано:
+
+- VFS загружается из JSON-файла (`--vfs-path`), полностью в память.
+- Формат узла: `name`, `type` (`file`/`dir`), опционально `permissions`,
+  `content` (base64, для файлов) или `children` (список узлов, для
+  директорий).
+- Исходный JSON-файл никогда не изменяется и не распаковывается на
+  диск.
+- Ошибка загрузки (файл не найден, некорректный JSON, неверная схема)
+  не приводит к падению эмулятора — выводится сообщение, и работа
+  продолжается с пустой VFS.
+- Примеры VFS разной сложности — в `fixtures/vfs/`.
+
 ## Сборка и запуск тестов
 
 Проект не требует сборки (интерпретируемый Python, зависимостей нет).
@@ -77,4 +90,36 @@ $ python3 src/emulator.py --vfs-path /tmp/example.json --prompt "myos:~$ "
 
 myos:~$ ls
 ls: аргументы=[]
+
+
+Для этапа 3:
+
+$ python3 src/emulator.py --vfs-path fixtures/vfs/deep_structure.json --prompt "demo:/$ "
+Параметры конфигурации эмулятора:
+  путь к VFS       : fixtures/vfs/deep_structure.json
+  имя VFS          : deep_structure
+  приглашение      : demo:/$ 
+  стартовый скрипт : (не задан)
+
+ошибка загрузки VFS: /deep_structure/level1/l1.txt: некорректные данные base64 (Only base64 data is allowed)
+Эмулятор командной строки. VFS: deep_structure
+Введите 'exit' для выхода.
+
+demo:/$ ls
+ls: аргументы=[]
+demo:/$ exit
+
+
+python3 src/emulator.py --vfs-path fixtures/vfs/does_not_exist.json
+Параметры конфигурации эмулятора:
+  путь к VFS       : fixtures/vfs/does_not_exist.json
+  имя VFS          : does_not_exist
+  приглашение      : does_not_exist> 
+  стартовый скрипт : (не задан)
+
+ошибка загрузки VFS: не удалось открыть файл VFS 'fixtures/vfs/does_not_exist.json': [Errno 2] No such file or directory: 'fixtures/vfs/does_not_exist.json'
+Эмулятор командной строки. VFS: does_not_exist
+Введите 'exit' для выхода.
+
+does_not_exist> exit
 ```
