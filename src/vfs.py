@@ -20,8 +20,11 @@ class VFSError(Exception):
 
 
 class VFSRuntimeError(Exception):
-    """Ошибка работы с VFS во время выполнения команд (путь не
-        найден, попытка войти в файл как в директорию и т.п.)."""
+    """Исключение, возникающее при ошибках работы с VFS.
+
+    Вызывается, если путь не найден, происходит попытка войти в файл
+    как в директорию и в других подобных случаях.
+    """
 
 
 class VFSNode:
@@ -29,7 +32,8 @@ class VFSNode:
 
     __slots__ = ("name", "is_dir", "permissions", "children", "content")
 
-    def __init__(self, name, is_dir, permissions=None, children=None, content=b""):
+    def __init__(self, name, is_dir, permissions=None,
+                 children=None, content=b""):
         self.name = name
         self.is_dir = is_dir
         self.permissions = permissions or (
@@ -66,7 +70,7 @@ def _decode_content(data, where):
         return b""
     try:
         return base64.b64decode(content_b64, validate=True)
-    except (ValueError, ValueError) as exc:
+    except ValueError as exc:
         raise VFSError(f"{where}: некорректные данные base64 ({exc})") from exc
 
 
@@ -77,8 +81,10 @@ def _build_file_node(data, where, name, permissions):
 
 
 def _build_dir_node(data, where, name, permissions):
-    """Строит VFSNode для узла типа 'dir', рекурсивно обрабатывая
-        дочерние узлы."""
+    """Строит VFSNode для узла типа 'dir'.
+
+    Рекурсивно обрабатывает дочерние узлы.
+    """
     raw_children = data.get("children", [])
     if not isinstance(raw_children, list):
         raise VFSError(f"{where}: поле 'children' должно быть списком")
@@ -125,11 +131,15 @@ class VFS:
             with open(path, "r") as vfs_file:
                 raw = vfs_file.read()
         except OSError as exc:
-            raise VFSError(f"не удалось открыть файл VFS '{path}': {exc}") from exc
+            raise VFSError(
+                f"не удалось открыть файл VFS '{path}': {exc}"
+            ) from exc
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise VFSError(f"файл VFS '{path}' содержит некорректный JSON: {exc}'") from exc
+            raise VFSError(
+                f"файл VFS '{path}' содержит некорректный JSON: {exc}'"
+            ) from exc
 
         root = _build_node(data, "")
         if not root.is_dir:
@@ -138,13 +148,18 @@ class VFS:
 
     @classmethod
     def empty(cls, name="vfs"):
-        """Создаёт пустую VFS - для случая, кода путь не задан или
-        загрузка не удалась."""
+        """Создаёт пустую VFS.
+
+        Используется для случая, когда путь не задан или загрузка не удалась.
+        """
         return cls(VFSNode(name, is_dir=True, children={}))
 
     def _split_path(self, path):
-        """Превращает путь (абсолютный или относительный) в список имён
-        от корня с учётом '.', '..' и текущей директории."""
+        """Разбивает путь на список элементов.
+
+        Превращает путь (абсолютный или относительный) в список имён
+        от корня с учётом '.', '..' и текущей директории.
+        """
         parts = [] if path.startswith("/") else list(self.cwd_parts)
         for part in path.split("/"):
             if part in ("", "."):
@@ -179,8 +194,10 @@ class VFS:
         return "/" + "/".join(self.cwd_parts)
 
     def change_dir(self, path):
-        """Меняет текущую директорию. Бросает VFSRuntimeError, если путь
-        не найден или указывает на файл."""
+        """Меняет текущую директорию.
+
+        Бросает VFSRuntimeError, если путь не найден или указывает на файл.
+        """
         parts = self._split_path(path)
         node = self._node_at(parts)
         if not node.is_dir:
@@ -188,8 +205,11 @@ class VFS:
         self.cwd_parts = parts
 
     def list_dir(self, path=None):
-        """Список (имя, это директория?) для указанной или текущей
-        директории. Для файла возвращает список из одного элемента."""
+        """Возвращает содержимое указанной или текущей директории.
+
+        Возвращает список пар (имя, флаг директории). Для файла
+        возвращает список из одного элемента.
+        """
         node = self.resolve(path) if path else self._node_at(self.cwd_parts)
         if not node.is_dir:
             return [(node.name, False)]
@@ -197,11 +217,11 @@ class VFS:
         return sorted(entries, key=lambda entry: (not entry[1], entry[0]))
 
     def read_file(self, path):
-        """Возвращает содержимое файла. Бросает VFSRuntimeError, если
-        путь - директория или не найден."""
+        """Возвращает содержимое файла.
+
+        Бросает VFSRuntimeError, если путь является директорией или не найден.
+        """
         node = self.resolve(path)
         if node.is_dir:
             raise VFSRuntimeError(f"{path}: это директория")
         return node.content
-
-

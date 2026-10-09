@@ -31,8 +31,7 @@ class Config:
 
     @staticmethod
     def _compute_prompt(prompt, vfs_name):
-        """Пользовательское приглашение переопределяет значение по
-        умолчанию; по умолчанию приглашение содержит имя VFS."""
+        """Формирует приглашение командной строки на основе имени VFS."""
         if prompt:
             return prompt if prompt.endswith((" ", "\t")) else prompt + " "
         return f"{vfs_name}> "
@@ -49,6 +48,7 @@ class Config:
             f"  стартовый скрипт : {script}",
         ]
         return "\n".join(lines)
+
 
 def parse_args(argv=None):
     """Разбирает аргументы командной строки и возвращает Config."""
@@ -74,5 +74,3 @@ def parse_args(argv=None):
         prompt=namespace.prompt,
         script=namespace.script,
     )
-
-
