@@ -4,9 +4,9 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
 from config import Config, parse_args
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 class ConfigDefaultTests(unittest.TestCase):
@@ -25,6 +25,7 @@ class ConfigDefaultTests(unittest.TestCase):
 
 class ConfigVfsNameTests(unittest.TestCase):
     """Вычисление имени VFS из пути к файлу."""
+
     def test_vfs_name_from_path(self):
         """Имя VFS - это базовое имя файла без расширения."""
         cfg = Config(vfs_path="/data/my_vfs.json")

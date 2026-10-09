@@ -7,9 +7,9 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
 from emulator import load_script_lines, run_script, ScriptError
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 def _write_temp_script(text):

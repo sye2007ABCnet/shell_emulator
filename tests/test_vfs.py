@@ -6,9 +6,9 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
 from vfs import VFS, VFSError, VFSRuntimeError
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 DEEP_VFS = {
     "name": "root",
@@ -135,5 +135,3 @@ class VFSNavigationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

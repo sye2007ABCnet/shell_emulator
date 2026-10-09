@@ -4,9 +4,9 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
 from emulator import parse_line, execute, cmd_exit, CommandError
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 class ParseLineTests(unittest.TestCase):
