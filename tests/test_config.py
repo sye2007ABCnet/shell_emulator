@@ -25,6 +25,7 @@ class ConfigDefaultTests(unittest.TestCase):
 
 class ConfigVfsNameTests(unittest.TestCase):
     """Вычисление имени VFS из пути к файлу."""
+
     def test_vfs_name_from_path(self):
         """Имя VFS - это базовое имя файла без расширения."""
         cfg = Config(vfs_path="/data/my_vfs.json")

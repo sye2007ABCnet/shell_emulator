@@ -50,6 +50,7 @@ class Config:
         ]
         return "\n".join(lines)
 
+
 def parse_args(argv=None):
     """Разбирает аргументы командной строки и возвращает Config."""
     parser = argparse.ArgumentParser(
@@ -74,5 +75,3 @@ def parse_args(argv=None):
         prompt=namespace.prompt,
         script=namespace.script,
     )
-
-

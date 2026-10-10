@@ -27,7 +27,8 @@ def parse_line(line: str):
     Поддерживает кавычки (как в обычном шелле) и раскрытие $VAR в каждом токене.
 
     Возвращает (None, []) для пустой строки.
-    Бросает ValueError при некорректном синтаксисе (например, незакрытая кавычка).
+    Бросает ValueError при некорректном синтаксисе
+    (например, незакрытая кавычка).
     """
     tokens = shlex.split(line, comments=False, posix=True)
     tokens = [expand_env_vars(t) for t in tokens]
@@ -61,7 +62,9 @@ COMMANDS = {
 
 
 def execute(command, args):
-    """Выполняет команду. Печатает сообщение об ошибке, если что-то пошло не так."""
+    """Выполняет команду. Печатает сообщение об ошибке,
+    если что-то пошло не так.
+    """
     handler = COMMANDS.get(command)
     if handler is None:
         print(f"{command}: команда не найдена", file=sys.stderr)
